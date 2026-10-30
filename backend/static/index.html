@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Management MVP - Scaffolding</title>
+    <style>
+      :root {
+        --accent-yellow: #ecad0a;
+        --primary-blue: #209dd7;
+        --secondary-purple: #753991;
+        --navy-dark: #032147;
+        --gray-text: #888888;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f7f8fb;
+        color: var(--navy-dark);
+        margin: 0;
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid rgba(3, 33, 71, 0.08);
+        border-radius: 24px;
+        padding: 32px 40px;
+        max-width: 480px;
+        width: 100%;
+        box-shadow: 0 18px 40px rgba(3, 33, 71, 0.12);
+      }
+      .bar {
+        height: 6px;
+        width: 56px;
+        border-radius: 999px;
+        background: var(--accent-yellow);
+        margin-bottom: 16px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+      p {
+        margin: 0 0 20px;
+        color: var(--gray-text);
+        font-size: 14px;
+      }
+      .status {
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #f7f8fb;
+        font-family: monospace;
+        color: var(--primary-blue);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="bar"></div>
+      <h1>Hello World</h1>
+      <p>FastAPI static file serving and API health check:</p>
+      <div id="api-status" class="status">Checking /api/health...</div>
+    </main>
+    <script>
+      fetch("/api/health")
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("api-status").textContent =
+            data.status + ": " + data.message;
+        })
+        .catch((err) => {
+          document.getElementById("api-status").textContent =
+            "Error: " + err.message;
+        });
+    </script>
+  </body>
+</html>
+
