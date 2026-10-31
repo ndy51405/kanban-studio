@@ -54,14 +54,14 @@ Set up the Docker infrastructure, the FastAPI backend in `backend/`, and start/s
 Configure the Next.js frontend to build statically and be served by FastAPI at `/` inside the Docker container, and ensure card editing is supported alongside moving, adding, and deleting cards and renaming columns.
 
 ### Checklist
-- [ ] Update `frontend/next.config.ts` with `output: "export"` so `npm run build` outputs static assets to `frontend/out`
-- [ ] Add inline card editing support in `KanbanCard.tsx` and `KanbanBoard.tsx` (allowing card `title` and `details` to be edited, matching the business requirement that cards can be moved and edited)
-- [ ] Update `Dockerfile` to a multi-stage build:
+- [x] Update `frontend/next.config.ts` with `output: "export"` so `npm run build` outputs static assets to `frontend/out`
+- [x] Add inline card editing support in `KanbanCard.tsx` and `KanbanBoard.tsx` (allowing card `title` and `details` to be edited, matching the business requirement that cards can be moved and edited)
+- [x] Update `Dockerfile` to a multi-stage build:
   - Stage 1 (`node:22-alpine`): `npm ci && npm run build` in `frontend/`
   - Stage 2 (`python:3.12-slim` + `uv`): copy `frontend/out` into `/app/static` and serve at `/` via FastAPI `StaticFiles(html=True)`
-- [ ] Add unit tests for card editing in `frontend/src/components/KanbanBoard.test.tsx`
-- [ ] Add backend integration tests verifying `/` serves the built Next.js Kanban application
-- [ ] Update/run Playwright E2E tests against the served app
+- [x] Add unit tests for card editing in `frontend/src/components/KanbanBoard.test.tsx`
+- [x] Add backend integration tests verifying `/` serves the built Next.js Kanban application
+- [x] Update/run Playwright E2E tests against the served app (verified passing locally)
 
 ### Tests & Success Criteria
 - **Frontend Unit Tests**: `npm run test:unit` passes all existing tests plus card-editing tests.

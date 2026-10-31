@@ -22,16 +22,16 @@ The `frontend/` directory contains a Next.js 16 (App Router) and React 19 TypeSc
 - `src/components/KanbanBoard.tsx`: Main client component (`"use client"`) holding `board` state and `activeCardId` drag state. Wires `DndContext`, column renaming, card creation, card deletion, and `DragOverlay`.
 - `src/components/KanbanBoard.test.tsx`: Component tests verifying 5 columns render, column title renaming, and adding/removing a card.
 - `src/components/KanbanColumn.tsx`: Droppable column container (`data-testid="column-${column.id}"`) with an editable column title input, `SortableContext` list of cards, empty state drop zone, and `<NewCardForm />`.
-- `src/components/KanbanCard.tsx`: Sortable card item (`data-testid="card-${card.id}"`) displaying card title, details, and a "Remove" button.
+- `src/components/KanbanCard.tsx`: Sortable card item (`data-testid="card-${card.id}"`) displaying card title, details, blue pencil edit icon, and gray trash can delete icon. "Edit" swaps in an inline form (title/details) and disables dragging while editing.
 - `src/components/KanbanCardPreview.tsx`: Presentational card component rendered inside `DragOverlay` while dragging.
-- `src/components/NewCardForm.tsx`: Toggleable inline form inside each column for creating a new card with `title` and `details`.
-- `tests/kanban.spec.ts`: Playwright E2E tests verifying board load, card creation, and mouse drag-and-drop between columns.
+- `src/components/NewCardForm.tsx`: Toggleable inline form inside each column with a blue plus icon button for creating a new card with `title` and `details`.
+- `tests/kanban.spec.ts`: Playwright E2E tests verifying board load, column rename, card add/edit/delete, and mouse drag-and-drop between columns.
 
 ## Commands
 
 - `npm run dev`: Start Next.js development server
-- `npm run build`: Build production Next.js bundle (to be configured with `output: "export"` in Part 3 for static serving by FastAPI)
+- `npm run build`: Static export (`output: "export"`) to `out/`, served by FastAPI at `/` (backend defaults `STATIC_DIR` to `frontend/out`; Docker copies it to `/app/static`)
 - `npm run test:unit`: Run Vitest unit and component tests once
-- `npm run test:e2e`: Run Playwright E2E tests
+- `npm run test:e2e`: Run Playwright E2E tests against FastAPI at `http://127.0.0.1:8000` (builds and starts the backend with `uv` unless a server, e.g. the Docker container, is already running there)
 - `npm run test:all`: Run unit tests followed by E2E tests
 

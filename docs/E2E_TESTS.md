@@ -1,50 +1,49 @@
-# End-to-End (E2E) Testing Guide
+# 端對端 (E2E) 測試指南
 
-## Overview
+## 概述
 
-End-to-End (E2E) tests validate the complete application in a real headless Chromium browser using **Playwright**. Unlike unit tests (`jsdom`), E2E tests verify actual browser rendering, CSS layout/bounding boxes, pointer drag-and-drop physics, network requests, and full-stack persistence.
-
----
-
-## Stack & Configuration (`frontend/playwright.config.ts`)
-
-- **Framework**: `@playwright/test`
-- **Test Directory**: `frontend/tests/` (`*.spec.ts`)
-- **Browser Project**: Desktop Chrome (`chromium`)
-- **Base URL**: `http://127.0.0.1:3000` during standalone frontend development (or `http://127.0.0.1:8000` when testing against the unified FastAPI + static Next.js Docker container)
-- **Web Server Hook**: Playwright automatically starts the dev server (`npm run dev -- --hostname 127.0.0.1 --port 3000`) if a server is not already listening on the target URL (`reuseExistingServer: true`), and retains execution traces on failure (`trace: "retain-on-failure"`).
+端對端 (E2E) 測試使用 **Playwright** 在真實的無頭 Chromium 瀏覽器中驗證完整應用程式。與單元測試 (`jsdom`) 不同，E2E 測試會驗證實際的瀏覽器渲染、CSS 版面與邊界框、指標拖放行為、網路請求，以及全端資料持久化。
 
 ---
 
-## How E2E Tests Work (`frontend/tests/kanban.spec.ts`)
+## 技術堆疊與設定 (`frontend/playwright.config.ts`)
 
-1. **Page Navigation & Initial Render**:
-   - Each test receives an isolated browser `page` context and navigates to `await page.goto("/")`.
-   - Asserts that key headings (`getByRole("heading", { name: "Kanban Studio" })`) and all 5 columns (`page.locator('[data-testid^="column-"]')`) are visible in the viewport.
-
-2. **Form & Card Workflows**:
-   - Scopes locators to a specific column (`page.locator('[data-testid^="column-"]').first()`).
-   - Clicks buttons and fills inputs (`getByPlaceholder("Card title").fill(...)`) just as a user would, asserting that newly created or edited cards become visible in the DOM.
-
-3. **Real Pointer Drag-and-Drop**:
-   - Because `@dnd-kit` relies on pointer sensors (`PointerSensor` with a 6px activation distance) and layout geometry, drag-and-drop is tested in Playwright using real bounding-box coordinates:
-     1. Resolves `card.boundingBox()` for the source card (`data-testid="card-card-1"`) and `targetColumn.boundingBox()` for the destination column (`data-testid="column-col-review"`).
-     2. Moves the mouse to the center of the source card (`page.mouse.move`) and presses the button down (`page.mouse.down`).
-     3. Moves the mouse smoothly across multiple steps (`{ steps: 12 }`) into the target column to exceed the drag activation threshold and trigger collision detection.
-     4. Releases the mouse (`page.mouse.up`) and asserts the card now resides inside `targetColumn`.
-
-4. **Full-Stack Flows (Parts 4, 7, and 10)**:
-   - **Authentication (Part 4)**: Verifies that visiting `/` displays the sign-in screen, signing in with `user` / `password` reveals the Kanban board, and logging out returns to the sign-in screen.
-   - **Database Persistence (Part 7)**: Performs board mutations, executes `await page.reload()`, and verifies that changes persist from the SQLite backend.
-   - **AI Chat Sidebar (Part 10)**: Sends a natural-language instruction in the chat sidebar and verifies that both the assistant reply appears and the Kanban board updates automatically.
+- **框架**：`@playwright/test`
+- **測試目錄**：`frontend/tests/` (`*.spec.ts`)
+- **瀏覽器專案**：Desktop Chrome (`chromium`)
+- **Base URL**：`http://127.0.0.1:8000` (由 FastAPI 提供靜態匯出的 Next.js 應用程式)
+- **Web Server 掛鉤**：若 8000 埠上尚無伺服器 (例如 Docker 容器) 在監聽，Playwright 會先執行 `npm run build`，再以 `uv run uvicorn app.main:app` 啟動後端 (`reuseExistingServer: true`)，並在失敗時保留執行追蹤 (`trace: "retain-on-failure"`)。
 
 ---
 
-## Running E2E Tests
+## E2E 測試如何運作 (`frontend/tests/kanban.spec.ts`)
+
+1. **頁面導覽與初始渲染**：
+   - 每個測試取得獨立的瀏覽器 `page` 環境，並執行 `await page.goto("/")`。
+   - 斷言關鍵標題 (`getByRole("heading", { name: "Kanban Studio" })`) 與全部 5 個欄位 (`page.locator('[data-testid^="column-"]')`) 都顯示在視窗中。
+
+2. **表單與卡片流程**：
+   - 將定位器限定在特定欄位 (`page.locator('[data-testid^="column-"]').first()`)。
+   - 如同使用者一般點擊按鈕並填寫輸入框 (`getByPlaceholder("Card title").fill(...)`)，並斷言新建立或編輯後的卡片會顯示在 DOM 中。
+
+3. **真實指標拖放**：
+   - 由於 `@dnd-kit` 依賴指標感測器 (`PointerSensor`，啟動距離 6px) 與版面幾何，Playwright 以真實的邊界框座標測試拖放：
+     1. 取得來源卡片 (`data-testid="card-card-1"`) 的 `card.boundingBox()` 與目標欄位 (`data-testid="column-col-review"`) 的 `targetColumn.boundingBox()`。
+     2. 將滑鼠移到來源卡片中心 (`page.mouse.move`) 並按下按鍵 (`page.mouse.down`)。
+     3. 分多個步驟 (`{ steps: 12 }`) 平滑地將滑鼠移入目標欄位，以超過拖曳啟動門檻並觸發碰撞偵測。
+     4. 放開滑鼠 (`page.mouse.up`)，並斷言卡片現在位於 `targetColumn` 內。
+
+4. **全端流程 (第 4、7、10 部分)**：
+   - **身分驗證 (第 4 部分)**：驗證造訪 `/` 會顯示登入畫面，以 `user` / `password` 登入後會顯示看板，登出後會回到登入畫面。
+   - **資料庫持久化 (第 7 部分)**：對看板進行變更後執行 `await page.reload()`，驗證變更已由 SQLite 後端保存。
+   - **AI 聊天側邊欄 (第 10 部分)**：在聊天側邊欄送出自然語言指令，驗證助理回覆出現且看板自動更新。
+
+---
+
+## 執行 E2E 測試
 
 ```bash
 cd frontend
-npm run test:e2e   # Run Playwright E2E suite in headless Chromium
-npm run test:all   # Run Vitest unit tests followed by Playwright E2E tests
+npm run test:e2e   # 在無頭 Chromium 中執行 Playwright E2E 測試
+npm run test:all   # 先執行 Vitest 單元測試，再執行 Playwright E2E 測試
 ```
-

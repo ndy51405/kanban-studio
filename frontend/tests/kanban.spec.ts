@@ -6,7 +6,14 @@ test("loads the kanban board", async ({ page }) => {
   await expect(page.locator('[data-testid^="column-"]')).toHaveCount(5);
 });
 
-test("adds a card to a column", async ({ page }) => {
+test("renames a column", async ({ page }) => {
+  await page.goto("/");
+  const column = page.getByTestId("column-col-backlog");
+  await column.getByLabel("Column title").fill("Ideas");
+  await expect(column.getByLabel("Column title")).toHaveValue("Ideas");
+});
+
+test("adds, edits and deletes a card", async ({ page }) => {
   await page.goto("/");
   const firstColumn = page.locator('[data-testid^="column-"]').first();
   await firstColumn.getByRole("button", { name: /add a card/i }).click();
@@ -14,6 +21,20 @@ test("adds a card to a column", async ({ page }) => {
   await firstColumn.getByPlaceholder("Details").fill("Added via e2e.");
   await firstColumn.getByRole("button", { name: /add card/i }).click();
   await expect(firstColumn.getByText("Playwright card")).toBeVisible();
+
+  await firstColumn
+    .getByRole("button", { name: "Edit Playwright card", exact: true })
+    .click();
+  await firstColumn.getByLabel("Edit card title").fill("Edited card");
+  await firstColumn.getByLabel("Edit card details").fill("Edited via e2e.");
+  await firstColumn.getByRole("button", { name: "Save" }).click();
+  await expect(firstColumn.getByText("Edited card")).toBeVisible();
+  await expect(firstColumn.getByText("Edited via e2e.")).toBeVisible();
+
+  await firstColumn
+    .getByRole("button", { name: "Delete Edited card", exact: true })
+    .click();
+  await expect(firstColumn.getByText("Edited card")).toHaveCount(0);
 });
 
 test("moves a card between columns", async ({ page }) => {

@@ -65,9 +65,27 @@ export const NewCardForm = ({ onAdd }: NewCardFormProps) => {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-full rounded-full border border-dashed border-[var(--stroke)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[var(--primary-blue)] transition hover:border-[var(--primary-blue)]"
+          className="group flex w-full items-center justify-center rounded-2xl border border-dashed border-[var(--stroke)] py-2.5 text-xs font-semibold tracking-wider text-[var(--primary-blue)] transition-all duration-300 hover:border-[var(--primary-blue)] hover:bg-[var(--surface)]"
+          aria-label="Add a card"
+          title="Add a card"
         >
-          Add a card
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 shrink-0"
+            aria-hidden="true"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-out group-hover:ml-2 group-hover:max-w-xs group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-xs group-focus-visible:opacity-100">
+            ADD A CARD
+          </span>
         </button>
       )}
     </div>

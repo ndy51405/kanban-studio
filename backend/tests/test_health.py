@@ -10,10 +10,15 @@ def test_health_endpoint() -> None:
     assert response.json() == {"status": "ok", "message": "Hello from FastAPI"}
 
 
-def test_root_serves_static_html() -> None:
+def test_root_serves_kanban_app() -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "Hello World" in response.text
-    assert "/api/health" in response.text
+    assert "Kanban Studio" in response.text
 
+
+def test_serves_next_static_assets() -> None:
+    html = client.get("/").text
+    asset = html.split('src="/_next/')[1].split('"')[0]
+    response = client.get(f"/_next/{asset}")
+    assert response.status_code == 200
