@@ -21,6 +21,7 @@ COPY backend/app ./app
 COPY --from=frontend /frontend/out ./static
 
 ENV STATIC_DIR=/app/static
+ENV DATABASE_PATH=/app/data/pm.db
 
 EXPOSE 8000
 

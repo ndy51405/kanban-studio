@@ -98,7 +98,7 @@ Design the SQLite schema supporting multiple users and storing each user's Kanba
   - `boards` table (`id INTEGER PRIMARY KEY AUTOINCREMENT`, `user_id INTEGER NOT NULL UNIQUE REFERENCES users(id)`, `board_json TEXT NOT NULL`, `updated_at TEXT NOT NULL`)
   - JSON structure for `board_json` matching frontend `BoardData` (`columns: Column[]`, `cards: Record<string, Card>`)
   - Auto-initialization and default user/board seeding strategy on startup
-- [ ] Request user review and sign-off on `docs/DATABASE.md` before starting Part 6
+- [x] Request user review and sign-off on `docs/DATABASE.md` before starting Part 6
 
 ### Tests & Success Criteria
 - `docs/DATABASE.md` is clear, minimal, and covers schema, JSON validation model, and seeding behavior.
@@ -111,16 +111,16 @@ Design the SQLite schema supporting multiple users and storing each user's Kanba
 Implement SQLite database creation, seeding, authentication, and Kanban CRUD API routes in FastAPI with comprehensive backend unit tests.
 
 ### Checklist
-- [ ] Create `backend/app/schemas.py` with Pydantic models for `Card`, `Column`, `BoardData`, and `LoginRequest` / `LoginResponse`
-- [ ] Create `backend/app/db.py` using Python's built-in `sqlite3`:
+- [x] Create `backend/app/schemas.py` with Pydantic models for `Card`, `Column`, `BoardData`, and `LoginRequest` / `LoginResponse`
+- [x] Create `backend/app/db.py` using Python's built-in `sqlite3`:
   - Automatically create parent directory and tables (`users`, `boards`) if `pm.db` does not exist
   - Seed default user (`username="user"`, `password="password"`) and default `initialData` Kanban JSON if not present
   - Helper functions to verify user credentials, fetch `BoardData` for a username, and update `BoardData` for a username
-- [ ] Add FastAPI routes in `backend/app/main.py`:
+- [x] Add FastAPI routes in `backend/app/main.py`:
   - `POST /api/auth/login`: validate credentials against `users` table and return user info
   - `GET /api/kanban`: return the user's `BoardData` JSON (defaulting to or scoped by authenticated user)
   - `PUT /api/kanban`: validate and persist updated `BoardData` JSON for the user
-- [ ] Write comprehensive backend unit tests in `backend/tests/test_kanban_api.py` using an isolated temporary SQLite database fixture
+- [x] Write comprehensive backend unit tests in `backend/tests/test_kanban_api.py` using an isolated temporary SQLite database fixture
 
 ### Tests & Success Criteria
 - **Backend Unit Tests**: `pytest` verifies:
