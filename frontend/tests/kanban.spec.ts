@@ -45,8 +45,61 @@ test.describe("Authentication Flow", () => {
   });
 });
 
+const defaultBoardData = {
+  columns: [
+    { id: "col-backlog", title: "Backlog", cardIds: ["card-1", "card-2"] },
+    { id: "col-discovery", title: "Discovery", cardIds: ["card-3"] },
+    { id: "col-progress", title: "In Progress", cardIds: ["card-4", "card-5"] },
+    { id: "col-review", title: "Review", cardIds: ["card-6"] },
+    { id: "col-done", title: "Done", cardIds: ["card-7", "card-8"] },
+  ],
+  cards: {
+    "card-1": {
+      id: "card-1",
+      title: "Align roadmap themes",
+      details: "Draft quarterly themes with impact statements and metrics.",
+    },
+    "card-2": {
+      id: "card-2",
+      title: "Gather customer signals",
+      details: "Review support tags, sales notes, and churn feedback.",
+    },
+    "card-3": {
+      id: "card-3",
+      title: "Prototype analytics view",
+      details: "Sketch initial dashboard layout and key drill-downs.",
+    },
+    "card-4": {
+      id: "card-4",
+      title: "Refine status language",
+      details: "Standardize column labels and tone across the board.",
+    },
+    "card-5": {
+      id: "card-5",
+      title: "Design card layout",
+      details: "Add hierarchy and spacing for scanning dense lists.",
+    },
+    "card-6": {
+      id: "card-6",
+      title: "QA micro-interactions",
+      details: "Verify hover, focus, and loading states.",
+    },
+    "card-7": {
+      id: "card-7",
+      title: "Ship marketing page",
+      details: "Final copy approved and asset pack delivered.",
+    },
+    "card-8": {
+      id: "card-8",
+      title: "Close onboarding sprint",
+      details: "Document release notes and share internally.",
+    },
+  },
+};
+
 test.describe("Kanban Board Operations", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
+    await request.put("/api/kanban", { data: defaultBoardData });
     await loginAsDemoUser(page);
   });
 
@@ -100,5 +153,46 @@ test.describe("Kanban Board Operations", () => {
     );
     await page.mouse.up();
     await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
+  });
+
+  test("persists column renames, card additions, edits, and deletions across page reload", async ({
+    page,
+  }) => {
+    // 1. Rename column
+    const backlogCol = page.getByTestId("column-col-backlog");
+    await backlogCol.getByLabel("Column title").fill("Sprint Backlog");
+
+    // 2. Add card
+    await backlogCol.getByRole("button", { name: /add a card/i }).click();
+    await backlogCol.getByPlaceholder("Card title").fill("Persistent card");
+    await backlogCol.getByPlaceholder("Details").fill("Verified after reload.");
+    await backlogCol.getByRole("button", { name: /add card/i }).click();
+    await expect(backlogCol.getByText("Persistent card")).toBeVisible();
+
+    // 3. Edit card
+    await backlogCol
+      .getByRole("button", { name: "Edit Align roadmap themes", exact: true })
+      .click();
+    await backlogCol.getByLabel("Edit card title").fill("Updated Theme Card");
+    await backlogCol.getByRole("button", { name: "Save" }).click();
+    await expect(backlogCol.getByText("Updated Theme Card")).toBeVisible();
+
+    // 4. Delete card
+    await backlogCol
+      .getByRole("button", { name: "Delete Gather customer signals", exact: true })
+      .click();
+    await expect(backlogCol.getByText("Gather customer signals")).toHaveCount(0);
+
+    // Wait a brief moment for PUT to complete then reload
+    await page.waitForTimeout(500);
+    await page.reload();
+
+    // Verify all changes persisted from backend SQLite
+    await expect(page.getByRole("heading", { name: "Kanban Studio" })).toBeVisible();
+    const reloadedCol = page.getByTestId("column-col-backlog");
+    await expect(reloadedCol.getByLabel("Column title")).toHaveValue("Sprint Backlog");
+    await expect(reloadedCol.getByText("Persistent card")).toBeVisible();
+    await expect(reloadedCol.getByText("Updated Theme Card")).toBeVisible();
+    await expect(reloadedCol.getByText("Gather customer signals")).toHaveCount(0);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { loginUser } from "@/lib/api";
 
 interface LoginFormProps {
   onLogin: (username: string) => void;
@@ -10,14 +11,23 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (username.trim() === "user" && password === "password") {
-      setError(null);
-      onLogin("user");
-    } else {
-      setError("Invalid username or password");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await loginUser({
+        username: username.trim(),
+        password,
+      });
+      onLogin(response.username);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid username or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,20 +117,20 @@ export const LoginForm = ({ onLogin }: LoginFormProps) => {
               username <code className="font-mono text-[var(--navy-dark)]">user</code> / password{" "}
               <code className="font-mono text-[var(--navy-dark)]">password</code>
             </span>
-            <span className="rounded-lg bg-[var(--surface)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--primary-blue)] border border-[var(--stroke)]">
+            <span className="rounded-lg border border-[var(--stroke)] bg-[var(--surface)] px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--primary-blue)]">
               Fill
             </span>
           </button>
 
           <button
             type="submit"
-            className="mt-2 w-full rounded-2xl bg-[var(--secondary-purple)] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[var(--secondary-purple)]/40"
+            disabled={loading}
+            className="mt-2 w-full rounded-2xl bg-[var(--secondary-purple)] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[var(--secondary-purple)]/40 disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
     </div>
   );
 };
-

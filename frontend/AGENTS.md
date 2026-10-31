@@ -18,6 +18,8 @@ The `frontend/` directory contains a Next.js 16 (App Router) and React 19 TypeSc
 - `src/app/globals.css`: Defines the project color variables (`--accent-yellow`, `--primary-blue`, `--secondary-purple`, `--navy-dark`, `--gray-text`, plus surface and shadow tokens) and base typography styles.
 - `src/app/page.tsx`: Root route (`/`) managing client authentication state (`localStorage`). Renders `<LoginForm />` when unauthenticated and `<KanbanBoard />` with logout handling when signed in.
 - `src/app/page.test.tsx`: Component tests for the authentication and session persistence flow on `/`.
+- `src/lib/api.ts`: Typed API client for FastAPI endpoints (`loginUser` to `POST /api/auth/login`, `fetchKanbanBoard` to `GET /api/kanban`, and `updateKanbanBoard` to `PUT /api/kanban`).
+- `src/lib/api.test.ts`: Unit tests verifying API request formats and error propagation for all endpoints.
 - `src/lib/kanban.ts`: Core domain types (`Card`, `Column`, `BoardData`), initial seed data (`initialData` with 5 columns and 8 cards), `moveCard()` pure function for reordering/moving cards across columns, and `createId()` helper.
 - `src/lib/kanban.test.ts`: Unit tests for `moveCard()` (same-column reorder, cross-column move, column drop).
 - `src/components/LoginForm.tsx`: Accessible sign-in form styled with project tokens, validating against hardcoded `user` / `password` credentials and displaying inline errors.

@@ -4,6 +4,10 @@ import { vi } from "vitest";
 import { LoginForm } from "@/components/LoginForm";
 
 describe("LoginForm", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders username, password inputs and sign-in button", () => {
     render(<LoginForm onLogin={vi.fn()} />);
 
@@ -13,7 +17,12 @@ describe("LoginForm", () => {
     expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it("shows an error message on invalid credentials", async () => {
+  it("shows an error message when login API fails", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ detail: "Invalid username or password" }),
+    } as Response);
+
     const handleLogin = vi.fn();
     render(<LoginForm onLogin={handleLogin} />);
 
@@ -22,12 +31,17 @@ describe("LoginForm", () => {
     await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
     expect(
-      screen.getByRole("alert")
+      await screen.findByRole("alert")
     ).toHaveTextContent(/invalid username or password/i);
     expect(handleLogin).not.toHaveBeenCalled();
   });
 
-  it("calls onLogin with username when credentials are valid", async () => {
+  it("calls onLogin with username when login API succeeds", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ username: "user", status: "ok" }),
+    } as Response);
+
     const handleLogin = vi.fn();
     render(<LoginForm onLogin={handleLogin} />);
 
@@ -49,4 +63,3 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText(/password/i)).toHaveValue("password");
   });
 });
-

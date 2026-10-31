@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -14,15 +14,55 @@ import {
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { KanbanCardPreview } from "@/components/KanbanCardPreview";
 import { createId, initialData, moveCard, type BoardData } from "@/lib/kanban";
+import { fetchKanbanBoard, updateKanbanBoard } from "@/lib/api";
 
 export interface KanbanBoardProps {
   user?: string;
   onLogout?: () => void;
+  initialBoard?: BoardData;
 }
 
-export const KanbanBoard = ({ user, onLogout }: KanbanBoardProps = {}) => {
-  const [board, setBoard] = useState<BoardData>(() => initialData);
+export const KanbanBoard = ({
+  user,
+  onLogout,
+  initialBoard,
+}: KanbanBoardProps = {}) => {
+  const [board, setBoard] = useState<BoardData>(() => initialBoard || initialData);
+  const [loading, setLoading] = useState(!initialBoard);
+  const [error, setError] = useState<string | null>(null);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialBoard) {
+      return;
+    }
+    let isMounted = true;
+    fetchKanbanBoard()
+      .then((data) => {
+        if (isMounted) {
+          setBoard(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error("Failed to fetch board:", err);
+          setError("Failed to load latest board data. Using local state.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialBoard]);
+
+  const persistBoard = (newBoard: BoardData) => {
+    updateKanbanBoard(newBoard).catch((err) => {
+      console.error("Failed to persist board:", err);
+      setError("Failed to save changes to the server.");
+    });
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -44,40 +84,52 @@ export const KanbanBoard = ({ user, onLogout }: KanbanBoardProps = {}) => {
       return;
     }
 
-    setBoard((prev) => ({
-      ...prev,
-      columns: moveCard(prev.columns, active.id as string, over.id as string),
-    }));
+    setBoard((prev) => {
+      const updated = {
+        ...prev,
+        columns: moveCard(prev.columns, active.id as string, over.id as string),
+      };
+      persistBoard(updated);
+      return updated;
+    });
   };
 
   const handleRenameColumn = (columnId: string, title: string) => {
-    setBoard((prev) => ({
-      ...prev,
-      columns: prev.columns.map((column) =>
-        column.id === columnId ? { ...column, title } : column
-      ),
-    }));
+    setBoard((prev) => {
+      const updated = {
+        ...prev,
+        columns: prev.columns.map((column) =>
+          column.id === columnId ? { ...column, title } : column
+        ),
+      };
+      persistBoard(updated);
+      return updated;
+    });
   };
 
   const handleAddCard = (columnId: string, title: string, details: string) => {
     const id = createId("card");
-    setBoard((prev) => ({
-      ...prev,
-      cards: {
-        ...prev.cards,
-        [id]: { id, title, details: details || "No details yet." },
-      },
-      columns: prev.columns.map((column) =>
-        column.id === columnId
-          ? { ...column, cardIds: [...column.cardIds, id] }
-          : column
-      ),
-    }));
+    setBoard((prev) => {
+      const updated = {
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [id]: { id, title, details: details || "No details yet." },
+        },
+        columns: prev.columns.map((column) =>
+          column.id === columnId
+            ? { ...column, cardIds: [...column.cardIds, id] }
+            : column
+        ),
+      };
+      persistBoard(updated);
+      return updated;
+    });
   };
 
   const handleDeleteCard = (columnId: string, cardId: string) => {
     setBoard((prev) => {
-      return {
+      const updated = {
         ...prev,
         cards: Object.fromEntries(
           Object.entries(prev.cards).filter(([id]) => id !== cardId)
@@ -91,20 +143,41 @@ export const KanbanBoard = ({ user, onLogout }: KanbanBoardProps = {}) => {
             : column
         ),
       };
+      persistBoard(updated);
+      return updated;
     });
   };
 
   const handleEditCard = (cardId: string, title: string, details: string) => {
-    setBoard((prev) => ({
-      ...prev,
-      cards: {
-        ...prev.cards,
-        [cardId]: { id: cardId, title, details: details || "No details yet." },
-      },
-    }));
+    setBoard((prev) => {
+      const updated = {
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [cardId]: { id: cardId, title, details: details || "No details yet." },
+        },
+      };
+      persistBoard(updated);
+      return updated;
+    });
   };
 
   const activeCard = activeCardId ? cardsById[activeCardId] : null;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface)]">
+        <div className="text-center">
+          <h1 className="font-display text-2xl font-semibold text-[var(--navy-dark)]">
+            Kanban Studio
+          </h1>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--gray-text)]">
+            Loading board...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative overflow-hidden">
@@ -113,6 +186,22 @@ export const KanbanBoard = ({ user, onLogout }: KanbanBoardProps = {}) => {
 
       <main className="relative mx-auto flex min-h-screen max-w-[1500px] flex-col gap-10 px-6 pb-16 pt-12">
         <header className="flex flex-col gap-6 rounded-[32px] border border-[var(--stroke)] bg-white/80 p-8 shadow-[var(--shadow)] backdrop-blur">
+          {error ? (
+            <div
+              role="alert"
+              className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700"
+            >
+              <span>{error}</span>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="ml-4 font-bold text-red-700 hover:opacity-70"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--gray-text)]">

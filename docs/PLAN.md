@@ -138,11 +138,11 @@ Implement SQLite database creation, seeding, authentication, and Kanban CRUD API
 Connect the frontend authentication and Kanban board state to the FastAPI backend so all changes persist in SQLite.
 
 ### Checklist
-- [ ] Create `frontend/src/lib/api.ts` with typed client functions for `POST /api/auth/login`, `GET /api/kanban`, and `PUT /api/kanban`
-- [ ] Update `LoginForm` / auth flow to authenticate via `POST /api/auth/login`
-- [ ] Update `KanbanBoard.tsx` to load initial board data from `GET /api/kanban` on mount and persist board mutations (column rename, card add, card edit, card delete, drag-and-drop move) via `PUT /api/kanban`
-- [ ] Add loading and error handling states without cluttering the UI
-- [ ] Update frontend unit tests (mocking `fetch`) and E2E tests (verifying persistence across page reloads)
+- [x] Create `frontend/src/lib/api.ts` with typed client functions for `POST /api/auth/login`, `GET /api/kanban`, and `PUT /api/kanban`
+- [x] Update `LoginForm` / auth flow to authenticate via `POST /api/auth/login`
+- [x] Update `KanbanBoard.tsx` to load initial board data from `GET /api/kanban` on mount and persist board mutations (column rename, card add, card edit, card delete, drag-and-drop move) via `PUT /api/kanban`
+- [x] Add loading and error handling states without cluttering the UI
+- [x] Update frontend unit tests (mocking `fetch`) and E2E tests (verifying persistence across page reloads)
 
 ### Tests & Success Criteria
 - **Frontend Unit Tests**: Verify board loads from API and every mutation triggers `PUT /api/kanban` with updated `BoardData`.

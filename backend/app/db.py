@@ -145,6 +145,11 @@ def init_db(db_path: Path | None = None) -> None:
             )
         conn.commit()
 
+    try:
+        os.chmod(path, 0o666)
+    except OSError:
+        pass
+
 
 def authenticate_user(
     username: str, password: str, db_path: Path | None = None
