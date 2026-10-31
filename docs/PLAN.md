@@ -92,7 +92,7 @@ Gate the Kanban board behind a login screen at `/` requiring username `"user"` a
 Design the SQLite schema supporting multiple users and storing each user's Kanban board as JSON. Document the approach in `docs/DATABASE.md` and get user sign-off.
 
 ### Checklist
-- [ ] Draft `docs/DATABASE.md` defining:
+- [x] Draft `docs/DATABASE.md` defining:
   - Database file location (`data/pm.db`, configurable via `DATABASE_PATH` env var)
   - `users` table (`id INTEGER PRIMARY KEY AUTOINCREMENT`, `username TEXT UNIQUE NOT NULL`, `password_hash TEXT NOT NULL`, `created_at TEXT NOT NULL`)
   - `boards` table (`id INTEGER PRIMARY KEY AUTOINCREMENT`, `user_id INTEGER NOT NULL UNIQUE REFERENCES users(id)`, `board_json TEXT NOT NULL`, `updated_at TEXT NOT NULL`)
