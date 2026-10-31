@@ -16,11 +16,14 @@ The `frontend/` directory contains a Next.js 16 (App Router) and React 19 TypeSc
 
 - `src/app/layout.tsx`: Root layout configuring Google Fonts (`Space_Grotesk` as `--font-display` and `Manrope` as `--font-body`) and metadata.
 - `src/app/globals.css`: Defines the project color variables (`--accent-yellow`, `--primary-blue`, `--secondary-purple`, `--navy-dark`, `--gray-text`, plus surface and shadow tokens) and base typography styles.
-- `src/app/page.tsx`: Root route (`/`) rendering `<KanbanBoard />`.
+- `src/app/page.tsx`: Root route (`/`) managing client authentication state (`localStorage`). Renders `<LoginForm />` when unauthenticated and `<KanbanBoard />` with logout handling when signed in.
+- `src/app/page.test.tsx`: Component tests for the authentication and session persistence flow on `/`.
 - `src/lib/kanban.ts`: Core domain types (`Card`, `Column`, `BoardData`), initial seed data (`initialData` with 5 columns and 8 cards), `moveCard()` pure function for reordering/moving cards across columns, and `createId()` helper.
 - `src/lib/kanban.test.ts`: Unit tests for `moveCard()` (same-column reorder, cross-column move, column drop).
-- `src/components/KanbanBoard.tsx`: Main client component (`"use client"`) holding `board` state and `activeCardId` drag state. Wires `DndContext`, column renaming, card creation, card deletion, and `DragOverlay`.
-- `src/components/KanbanBoard.test.tsx`: Component tests verifying 5 columns render, column title renaming, and adding/removing a card.
+- `src/components/LoginForm.tsx`: Accessible sign-in form styled with project tokens, validating against hardcoded `user` / `password` credentials and displaying inline errors.
+- `src/components/LoginForm.test.tsx`: Unit tests for `LoginForm` input fields, credential validation, error states, and submission.
+- `src/components/KanbanBoard.tsx`: Main client component (`"use client"`) holding `board` state and `activeCardId` drag state. Supports `user` and `onLogout` props, rendering a "Log out" button in the header alongside `DndContext`, column renaming, card creation, card editing, card deletion, and `DragOverlay`.
+- `src/components/KanbanBoard.test.tsx`: Component tests verifying 5 columns render, column title renaming, adding/editing/removing a card, and logout action callback.
 - `src/components/KanbanColumn.tsx`: Droppable column container (`data-testid="column-${column.id}"`) with an editable column title input, `SortableContext` list of cards, empty state drop zone, and `<NewCardForm />`.
 - `src/components/KanbanCard.tsx`: Sortable card item (`data-testid="card-${card.id}"`) displaying card title, details, blue pencil edit icon, and gray trash can delete icon. "Edit" swaps in an inline form (title/details) and disables dragging while editing.
 - `src/components/KanbanCardPreview.tsx`: Presentational card component rendered inside `DragOverlay` while dragging.

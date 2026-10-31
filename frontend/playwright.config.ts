@@ -14,7 +14,7 @@ export default defineConfig({
     command:
       "npm run build && cd ../backend && uv run uvicorn app.main:app --host 127.0.0.1 --port 8000",
     url: "http://127.0.0.1:8000",
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   projects: [

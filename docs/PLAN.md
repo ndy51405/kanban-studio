@@ -75,11 +75,11 @@ Configure the Next.js frontend to build statically and be served by FastAPI at `
 Gate the Kanban board behind a login screen at `/` requiring username `"user"` and password `"password"`, and provide a logout action.
 
 ### Checklist
-- [ ] Create `frontend/src/components/LoginForm.tsx` styled with the project color palette (`#032147` navy headings, `#753991` purple submit button, `#209dd7` blue accents)
-- [ ] Manage authentication state in the frontend (persisted in `sessionStorage`/`localStorage` so page refreshes during a session stay signed in until logout)
-- [ ] Reject invalid credentials with a clear error message; accept `"user"` / `"password"`
-- [ ] Add a "Log out" button in the `KanbanBoard` header that clears auth state and returns to the login view
-- [ ] Update existing unit and Playwright E2E tests to account for login, and add dedicated auth tests
+- [x] Create `frontend/src/components/LoginForm.tsx` styled with the project color palette (`#032147` navy headings, `#753991` purple submit button, `#209dd7` blue accents)
+- [x] Manage authentication state in the frontend (persisted in `sessionStorage`/`localStorage` so page refreshes during a session stay signed in until logout)
+- [x] Reject invalid credentials with a clear error message; accept `"user"` / `"password"`
+- [x] Add a "Log out" button in the `KanbanBoard` header that clears auth state and returns to the login view
+- [x] Update existing unit and Playwright E2E tests to account for login, and add dedicated auth tests
 
 ### Tests & Success Criteria
 - **Frontend Unit Tests**: Verify unauthenticated users see the login form, invalid credentials show an error, valid credentials (`user` / `password`) render the Kanban board, and clicking "Log out" returns to the login form.

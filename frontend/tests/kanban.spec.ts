@@ -1,62 +1,104 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-test("loads the kanban board", async ({ page }) => {
+async function loginAsDemoUser(page: Page) {
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+  await page.getByLabel("Username").fill("user");
+  await page.getByLabel("Password").fill("password");
+  await page.getByRole("button", { name: /sign in/i }).click();
   await expect(page.getByRole("heading", { name: "Kanban Studio" })).toBeVisible();
-  await expect(page.locator('[data-testid^="column-"]')).toHaveCount(5);
+}
+
+test.describe("Authentication Flow", () => {
+  test("shows login screen when visiting unauthenticated", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByLabel("Username")).toBeVisible();
+    await expect(page.getByLabel("Password")).toBeVisible();
+  });
+
+  test("rejects invalid credentials with an error message", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Username").fill("invalid_user");
+    await page.getByLabel("Password").fill("wrong_password");
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    await expect(page.getByText(/invalid username or password/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Kanban Studio" })).not.toBeVisible();
+  });
+
+  test("signs in successfully, persists across reload, and logs out", async ({ page }) => {
+    await loginAsDemoUser(page);
+
+    // Verify 5 columns are rendered
+    await expect(page.locator('[data-testid^="column-"]')).toHaveCount(5);
+
+    // Reload page to verify session persistence
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Kanban Studio" })).toBeVisible();
+    await expect(page.locator('[data-testid^="column-"]')).toHaveCount(5);
+
+    // Log out
+    await page.getByRole("button", { name: /log out/i }).click();
+    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Kanban Studio" })).not.toBeVisible();
+  });
 });
 
-test("renames a column", async ({ page }) => {
-  await page.goto("/");
-  const column = page.getByTestId("column-col-backlog");
-  await column.getByLabel("Column title").fill("Ideas");
-  await expect(column.getByLabel("Column title")).toHaveValue("Ideas");
-});
+test.describe("Kanban Board Operations", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsDemoUser(page);
+  });
 
-test("adds, edits and deletes a card", async ({ page }) => {
-  await page.goto("/");
-  const firstColumn = page.locator('[data-testid^="column-"]').first();
-  await firstColumn.getByRole("button", { name: /add a card/i }).click();
-  await firstColumn.getByPlaceholder("Card title").fill("Playwright card");
-  await firstColumn.getByPlaceholder("Details").fill("Added via e2e.");
-  await firstColumn.getByRole("button", { name: /add card/i }).click();
-  await expect(firstColumn.getByText("Playwright card")).toBeVisible();
+  test("renames a column", async ({ page }) => {
+    const column = page.getByTestId("column-col-backlog");
+    await column.getByLabel("Column title").fill("Ideas");
+    await expect(column.getByLabel("Column title")).toHaveValue("Ideas");
+  });
 
-  await firstColumn
-    .getByRole("button", { name: "Edit Playwright card", exact: true })
-    .click();
-  await firstColumn.getByLabel("Edit card title").fill("Edited card");
-  await firstColumn.getByLabel("Edit card details").fill("Edited via e2e.");
-  await firstColumn.getByRole("button", { name: "Save" }).click();
-  await expect(firstColumn.getByText("Edited card")).toBeVisible();
-  await expect(firstColumn.getByText("Edited via e2e.")).toBeVisible();
+  test("adds, edits and deletes a card", async ({ page }) => {
+    const firstColumn = page.locator('[data-testid^="column-"]').first();
+    await firstColumn.getByRole("button", { name: /add a card/i }).click();
+    await firstColumn.getByPlaceholder("Card title").fill("Playwright card");
+    await firstColumn.getByPlaceholder("Details").fill("Added via e2e.");
+    await firstColumn.getByRole("button", { name: /add card/i }).click();
+    await expect(firstColumn.getByText("Playwright card")).toBeVisible();
 
-  await firstColumn
-    .getByRole("button", { name: "Delete Edited card", exact: true })
-    .click();
-  await expect(firstColumn.getByText("Edited card")).toHaveCount(0);
-});
+    await firstColumn
+      .getByRole("button", { name: "Edit Playwright card", exact: true })
+      .click();
+    await firstColumn.getByLabel("Edit card title").fill("Edited card");
+    await firstColumn.getByLabel("Edit card details").fill("Edited via e2e.");
+    await firstColumn.getByRole("button", { name: "Save" }).click();
+    await expect(firstColumn.getByText("Edited card")).toBeVisible();
+    await expect(firstColumn.getByText("Edited via e2e.")).toBeVisible();
 
-test("moves a card between columns", async ({ page }) => {
-  await page.goto("/");
-  const card = page.getByTestId("card-card-1");
-  const targetColumn = page.getByTestId("column-col-review");
-  const cardBox = await card.boundingBox();
-  const columnBox = await targetColumn.boundingBox();
-  if (!cardBox || !columnBox) {
-    throw new Error("Unable to resolve drag coordinates.");
-  }
+    await firstColumn
+      .getByRole("button", { name: "Delete Edited card", exact: true })
+      .click();
+    await expect(firstColumn.getByText("Edited card")).toHaveCount(0);
+  });
 
-  await page.mouse.move(
-    cardBox.x + cardBox.width / 2,
-    cardBox.y + cardBox.height / 2
-  );
-  await page.mouse.down();
-  await page.mouse.move(
-    columnBox.x + columnBox.width / 2,
-    columnBox.y + 120,
-    { steps: 12 }
-  );
-  await page.mouse.up();
-  await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
+  test("moves a card between columns", async ({ page }) => {
+    const card = page.getByTestId("card-card-1");
+    const targetColumn = page.getByTestId("column-col-review");
+    const cardBox = await card.boundingBox();
+    const columnBox = await targetColumn.boundingBox();
+    if (!cardBox || !columnBox) {
+      throw new Error("Unable to resolve drag coordinates.");
+    }
+
+    await page.mouse.move(
+      cardBox.x + cardBox.width / 2,
+      cardBox.y + cardBox.height / 2
+    );
+    await page.mouse.down();
+    await page.mouse.move(
+      columnBox.x + columnBox.width / 2,
+      columnBox.y + 120,
+      { steps: 12 }
+    );
+    await page.mouse.up();
+    await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
+  });
 });

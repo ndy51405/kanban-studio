@@ -78,4 +78,12 @@ describe("KanbanBoard", () => {
     expect(within(card).getByText("Align roadmap themes")).toBeInTheDocument();
     expect(screen.queryByText("Discarded")).not.toBeInTheDocument();
   });
+
+  it("calls onLogout when clicking the Log out button", async () => {
+    const handleLogout = vi.fn();
+    render(<KanbanBoard onLogout={handleLogout} />);
+    const logoutButton = screen.getByRole("button", { name: /log out/i });
+    await userEvent.click(logoutButton);
+    expect(handleLogout).toHaveBeenCalledTimes(1);
+  });
 });
