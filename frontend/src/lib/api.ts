@@ -49,3 +49,35 @@ export async function updateKanbanBoard(board: BoardData): Promise<BoardData> {
   return res.json();
 }
 
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface AIChatRequest {
+  message: string;
+  history?: ChatMessage[];
+}
+
+export interface AIChatResponse {
+  reply: string;
+  board?: BoardData | null;
+}
+
+export async function sendChatMessage(
+  payload: AIChatRequest
+): Promise<AIChatResponse> {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to communicate with AI");
+  }
+
+  return res.json();
+}
+

@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { KanbanCardPreview } from "@/components/KanbanCardPreview";
+import { ChatSidebar } from "@/components/ChatSidebar";
 import { createId, initialData, moveCard, type BoardData } from "@/lib/kanban";
 import { fetchKanbanBoard, updateKanbanBoard } from "@/lib/api";
 
@@ -31,6 +32,7 @@ export const KanbanBoard = ({
   const [loading, setLoading] = useState(!initialBoard);
   const [error, setError] = useState<string | null>(null);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     if (initialBoard) {
@@ -224,6 +226,14 @@ export const KanbanBoard = ({
                   One board. Five columns. Zero clutter.
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setIsChatOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-white px-5 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--navy-dark)] shadow-sm transition hover:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)]"
+              >
+                <span className="h-2 w-2 rounded-full bg-[var(--accent-yellow)]" />
+                AI Assistant
+              </button>
               {onLogout ? (
                 <button
                   type="button"
@@ -276,6 +286,12 @@ export const KanbanBoard = ({
           </DragOverlay>
         </DndContext>
       </main>
+
+      <ChatSidebar
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onBoardUpdate={(newBoard) => setBoard(newBoard)}
+      />
     </div>
   );
 };

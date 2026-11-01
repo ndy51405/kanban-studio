@@ -1,5 +1,10 @@
 import { vi } from "vitest";
-import { fetchKanbanBoard, loginUser, updateKanbanBoard } from "./api";
+import {
+  fetchKanbanBoard,
+  loginUser,
+  sendChatMessage,
+  updateKanbanBoard,
+} from "./api";
 import { initialData } from "./kanban";
 
 describe("api client", () => {
@@ -85,6 +90,42 @@ describe("api client", () => {
 
       await expect(updateKanbanBoard(initialData)).rejects.toThrow(
         "Validation failed"
+      );
+    });
+  });
+
+  describe("sendChatMessage", () => {
+    it("sends chat message and returns response", async () => {
+      vi.spyOn(global, "fetch").mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ reply: "Hello from AI", board: null }),
+      } as Response);
+
+      const res = await sendChatMessage({
+        message: "Hi AI",
+        history: [{ role: "user", content: "Hi AI" }],
+      });
+      expect(res).toEqual({ reply: "Hello from AI", board: null });
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/chat",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            message: "Hi AI",
+            history: [{ role: "user", content: "Hi AI" }],
+          }),
+        })
+      );
+    });
+
+    it("throws error on failure", async () => {
+      vi.spyOn(global, "fetch").mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ detail: "AI error" }),
+      } as Response);
+
+      await expect(sendChatMessage({ message: "test" })).rejects.toThrow(
+        "AI error"
       );
     });
   });
