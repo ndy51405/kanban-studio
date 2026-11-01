@@ -155,10 +155,10 @@ Connect the frontend authentication and Kanban board state to the FastAPI backen
 Enable the backend to call Google Gemini using `GEMINI_API_KEY` from `.env` and verify connectivity with a simple `"2+2"` test.
 
 ### Checklist
-- [ ] Add `google-genai` and `python-dotenv` to `backend/pyproject.toml`
-- [ ] Configure model selection (`gemini-2.5-flash` by default, configurable via `GEMINI_MODEL` env var) and load `GEMINI_API_KEY` from `.env`
-- [ ] Create `backend/app/ai.py` with a simple completion function
-- [ ] Add unit tests (with mocked Gemini client response) and a live connectivity test sending `"What is 2+2? Reply with just the number."` and asserting `"4"` in the response
+- [x] Add `google-genai` and `python-dotenv` to `backend/pyproject.toml`
+- [x] Configure model selection (`gemini-3.1-flash-lite` by default, configurable via `GEMINI_MODEL` env var) and load `GEMINI_API_KEY` from `.env`
+- [x] Create `backend/app/ai.py` with a simple completion function
+- [x] Add unit tests (with mocked Gemini client response) and a live connectivity test sending `"What is 2+2? Reply with just the number."` and asserting `"4"` in the response
 
 ### Tests & Success Criteria
 - **Backend Unit Tests**: Fast unit test with mocked client verifies request formatting and error handling.
