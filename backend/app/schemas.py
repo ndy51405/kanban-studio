@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic import BaseModel, Field
 
 
@@ -27,3 +28,17 @@ class LoginResponse(BaseModel):
     username: str
     status: str = "ok"
 
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class AIChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = Field(default_factory=list)
+
+
+class AIChatResponse(BaseModel):
+    reply: str
+    board: BoardData | None = None

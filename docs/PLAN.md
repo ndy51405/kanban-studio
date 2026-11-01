@@ -171,14 +171,14 @@ Enable the backend to call Google Gemini using `GEMINI_API_KEY` from `.env` and 
 Extend the backend AI integration so each chat request sends the user's question, conversation history, and current Kanban JSON, and receives a Structured Output containing the assistant reply and an optional updated Kanban board.
 
 ### Checklist
-- [ ] Define Pydantic schema `AIChatRequest` (`message: str`, `history: list[ChatMessage]`) and `AIChatResponse` (`reply: str`, `board: BoardData | None = None`) in `backend/app/schemas.py`
-- [ ] Configure `backend/app/ai.py` to pass a system prompt instructing the model how to inspect and modify the user's `BoardData` (creating, editing, moving, deleting cards or renaming columns while preserving existing IDs unless creating new cards) and enforce Structured Outputs (`response_mime_type="application/json"`, `response_schema=AIChatResponse`)
-- [ ] Implement `POST /api/chat` in `backend/app/main.py`:
+- [x] Define Pydantic schema `AIChatRequest` (`message: str`, `history: list[ChatMessage]`) and `AIChatResponse` (`reply: str`, `board: BoardData | None = None`) in `backend/app/schemas.py`
+- [x] Configure `backend/app/ai.py` to pass a system prompt instructing the model how to inspect and modify the user's `BoardData` (creating, editing, moving, deleting cards or renaming columns while preserving existing IDs unless creating new cards) and enforce Structured Outputs (`response_mime_type="application/json"`, `response_schema=AIChatResponse`)
+- [x] Implement `POST /api/chat` in `backend/app/main.py`:
   - Load current user's `BoardData` from SQLite
   - Call Gemini with current `BoardData`, `history`, and `message`
   - If the structured response includes an updated `board`, validate and save it to SQLite
   - Return `AIChatResponse` (`reply` and updated `board` if modified)
-- [ ] Write backend unit and integration tests covering conversational-only replies (`board: null`) and board-mutating replies (creating/editing/moving cards)
+- [x] Write backend unit and integration tests covering conversational-only replies (`board: null`) and board-mutating replies (creating/editing/moving cards)
 
 ### Tests & Success Criteria
 - **Backend Unit Tests**: Verify `POST /api/chat` leaves the DB unchanged when `board` is `None`, and updates SQLite + returns the new `board` when the AI outputs board modifications.

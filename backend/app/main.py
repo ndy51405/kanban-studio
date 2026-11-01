@@ -5,8 +5,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
+from app.ai import chat_with_kanban
 from app.db import authenticate_user, get_board_data, init_db, update_board_data
-from app.schemas import BoardData, LoginRequest, LoginResponse
+from app.schemas import AIChatRequest, AIChatResponse, BoardData, LoginRequest, LoginResponse
 
 
 @asynccontextmanager
@@ -49,6 +50,24 @@ def update_kanban(payload: BoardData) -> BoardData:
     if not success:
         raise HTTPException(status_code=404, detail="Board or user not found")
     return payload
+
+
+@app.post("/api/chat", response_model=AIChatResponse)
+def chat(payload: AIChatRequest) -> AIChatResponse:
+    board_dict = get_board_data("user")
+    if board_dict is None:
+        raise HTTPException(status_code=404, detail="Board not found")
+
+    current_board = BoardData.model_validate(board_dict)
+    try:
+        response = chat_with_kanban(payload.message, payload.history, current_board)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"AI service error: {exc}")
+
+    if response.board is not None:
+        update_board_data("user", response.board.model_dump())
+
+    return response
 
 
 if STATIC_DIR.exists():
